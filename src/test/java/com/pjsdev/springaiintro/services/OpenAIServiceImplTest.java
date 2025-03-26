@@ -15,7 +15,8 @@ class OpenAIServiceImplTest {
     @Test
     void getAnswer() {
 
-        String answer = openAIService.getAnswer("Tell me something funny.");
+        String answer = openAIService.getAnswer("Create JSON for the following: There are 3 people, two males. " +
+                "One is named Mark. Another is named Joe. And a third person is a woman named Sam. The woman is age 20 and the two men are both 19.");
         System.out.println("Got the answer: \n\n" + answer);
     }
 }
