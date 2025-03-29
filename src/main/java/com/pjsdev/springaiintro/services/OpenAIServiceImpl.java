@@ -1,5 +1,8 @@
 package com.pjsdev.springaiintro.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pjsdev.springaiintro.model.Answer;
 import com.pjsdev.springaiintro.model.GetCapitalRequest;
 import com.pjsdev.springaiintro.model.Question;
@@ -17,9 +20,11 @@ import java.util.Map;
 public class OpenAIServiceImpl implements OpenAIService {
 
     private final ChatModel chatModel;
+    private final ObjectMapper objectMapper;
 
-    public OpenAIServiceImpl(ChatModel chatModel) {
+    public OpenAIServiceImpl(ChatModel chatModel, ObjectMapper objectMapper) {
         this.chatModel = chatModel;
+        this.objectMapper = objectMapper;
     }
 
     @Value("classpath:templates/get-capital-prompt.st")
@@ -61,7 +66,21 @@ public class OpenAIServiceImpl implements OpenAIService {
 
         ChatResponse response = chatModel.call(prompt);
 
-        return new Answer(response.getResult().getOutput().getText());
+        String responseText = response.getResult().getOutput().getText();
+        System.out.println(responseText);
+
+        String responseString;
+
+        try {
+            JsonNode jsonNode = objectMapper.readTree(responseText);
+            responseString = jsonNode.get("answer").asText();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return new Answer(responseString);
+
+//        return new Answer(response.getResult().getOutput().getText());
     }
 
     @Override
