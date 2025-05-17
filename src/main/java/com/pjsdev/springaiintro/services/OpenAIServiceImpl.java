@@ -1,9 +1,6 @@
 package com.pjsdev.springaiintro.services;
 
-import com.pjsdev.springaiintro.model.Answer;
-import com.pjsdev.springaiintro.model.GetCapitalRequest;
-import com.pjsdev.springaiintro.model.GetCapitalResponse;
-import com.pjsdev.springaiintro.model.Question;
+import com.pjsdev.springaiintro.model.*;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -29,8 +26,8 @@ public class OpenAIServiceImpl implements OpenAIService {
     @Value("classpath:templates/get-capital-prompt.st")
     private Resource getCapitalPrompt;
 
-    @Value("classpath:templates/get-capital-with-info-prompt.st")
-    private Resource getCapitalWithInfoPrompt;
+//    @Value("classpath:templates/get-capital-with-info-prompt.st")
+//    private Resource getCapitalWithInfoPrompt;
 
     @Override
     public String getAnswer(String question) {
@@ -73,13 +70,17 @@ public class OpenAIServiceImpl implements OpenAIService {
     }
 
     @Override
-    public Answer getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
+    public GetCapitalWithInfoResponse getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
 
-        PromptTemplate promptTemplate = new PromptTemplate(getCapitalWithInfoPrompt);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
+        BeanOutputConverter<GetCapitalWithInfoResponse> converter = new BeanOutputConverter<>(GetCapitalWithInfoResponse.class);
+        String format = converter.getFormat();
+
+        PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(),
+                "format", format));
 
         ChatResponse response = chatModel.call(prompt);
 
-        return new Answer(response.getResult().getOutput().getText());
+        return converter.convert(response.getResult().getOutput().getText());
     }
 }
